@@ -1,0 +1,35 @@
+ncverilog: 15.20-s039: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+TOOL:	ncverilog	15.20-s039: Started on Nov 01, 2023 at 13:22:56 CST
+ncverilog
+	biriscv_frontend.v
+		Caching library 'worklib' ....... Done
+	Elaborating the design hierarchy:
+		Caching library 'worklib' ....... Done
+	Building instance overlay tables: .................... Done
+	Generating native compiled code:
+		worklib.biriscv_decode:v <0x4f586281>
+			streams:   0, words:     0
+		worklib.biriscv_decoder:v <0x490a1f74>
+			streams:   0, words:     0
+		worklib.biriscv_frontend:v <0x79762f98>
+			streams:   0, words:     0
+		worklib.fetch_fifo:v <0x5575c447>
+			streams:   0, words:     0
+	Building instance specific data structures.
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		             Instances  Unique
+		Modules:             8       7
+		Registers:          54      55
+		Scalar wires:       52       -
+		Expanded wires:      4       2
+		Vectored wires:     25       -
+		Always blocks:      24      26
+		Cont. assignments:   0      73
+	Writing initial simulation snapshot: worklib.biriscv_frontend:v
+Loading snapshot worklib.biriscv_frontend:v .................... Done
+ncsim> source /usr/cad/cadence/INCISIV/cur/tools/inca/files/ncsimrc
+ncsim> run
+ncsim: *W,RNQUIE: Simulation is complete.
+ncsim> exit
+TOOL:	ncverilog	15.20-s039: Exiting on Nov 01, 2023 at 13:24:09 CST  (total: 00:01:13)
