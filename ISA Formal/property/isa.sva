@@ -1,0 +1,1031 @@
+module isa(
+    input logic clk,
+    input logic rst
+);
+
+asm_valid_RV32I_inst_pipe0 : assume property ( 
+    (u_core.u_frontend.fetch_instr_w[6:0]==7'b0110111) //lui
+ || (u_core.u_frontend.fetch_instr_w[6:0]==7'b0010111) //auipc
+ || (u_core.u_frontend.fetch_instr_w[6:0]==7'b1101111) //jal
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b1100111) && 
+    (u_core.u_frontend.fetch_instr_w[14:12]==3'b000)) //jalr
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b1100011) && 
+    (u_core.u_frontend.fetch_instr_w[14:12]!=3'b010) && 
+    (u_core.u_frontend.fetch_instr_w[14:12]!=3'b011))//Btype
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b0000011) && 
+    ((u_core.u_frontend.fetch_instr_w[14:12]==3'b000) || 
+     (u_core.u_frontend.fetch_instr_w[14:12]==3'b001) || 
+     (u_core.u_frontend.fetch_instr_w[14:12]==3'b010)||
+     (u_core.u_frontend.fetch_instr_w[14:12]==3'b100)||
+     (u_core.u_frontend.fetch_instr_w[14:12]==3'b101))) //Itype_L
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b0100011) && 
+    ((u_core.u_frontend.fetch_instr_w[14:12]==3'b000) || 
+     (u_core.u_frontend.fetch_instr_w[14:12]==3'b001) || 
+     (u_core.u_frontend.fetch_instr_w[14:12]==3'b010))) //Stype
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b0010011))//Itype
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b0110011) && 
+    (((u_core.u_frontend.fetch_instr_w[14:12]==3'b000) && 
+    ((u_core.u_frontend.fetch_instr_w[31:25]==7'd0) || 
+     (u_core.u_frontend.fetch_instr_w[31:25]==7'b0100000)))//Rtype
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b001) &&  (u_core.u_frontend.fetch_instr_w[31:25]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b010) &&  (u_core.u_frontend.fetch_instr_w[31:25]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b011) &&  (u_core.u_frontend.fetch_instr_w[31:25]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b100) &&  (u_core.u_frontend.fetch_instr_w[31:25]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b101) && ((u_core.u_frontend.fetch_instr_w[31:25]==7'd0) || (u_core.u_frontend.fetch_instr_w[31:25]==7'b0100000)))
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b110) &&  (u_core.u_frontend.fetch_instr_w[31:25]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[14:12]==3'b111) &&  (u_core.u_frontend.fetch_instr_w[31:25]==7'd0)) ))                                        
+ ||((u_core.u_frontend.fetch_instr_w[6:0]==7'b1110011) && (u_core.u_frontend.fetch_instr_w[14:12]!=3'b000) && (u_core.u_frontend.fetch_instr_w[14:12]!=3'b100) 
+ && ((u_core.u_frontend.fetch_instr_w[31:20] == 12'h300) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'h304) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'h305) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'h341) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'h344) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'hB00) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'hB02) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'hB80) || 
+     (u_core.u_frontend.fetch_instr_w[31:20] == 12'hB82))));//CSR
+
+asm_valid_RV32I_inst_pipe1 : assume property (  
+    (u_core.u_frontend.fetch_instr_w[38:32]==7'b0110111) //lui
+ || (u_core.u_frontend.fetch_instr_w[38:32]==7'b0010111) //auipc
+ || (u_core.u_frontend.fetch_instr_w[38:32]==7'b1101111) //jal
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b1100111) &&  
+    (u_core.u_frontend.fetch_instr_w[46:44]==3'b000)) //jalr
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b1100011) &&  
+    (u_core.u_frontend.fetch_instr_w[46:44]!=3'b010) && 
+    (u_core.u_frontend.fetch_instr_w[46:44]!=3'b011))//Btype
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b0000011) && 
+    ((u_core.u_frontend.fetch_instr_w[46:44]==3'b000) || 
+     (u_core.u_frontend.fetch_instr_w[46:44]==3'b001) || 
+     (u_core.u_frontend.fetch_instr_w[46:44]==3'b010)||
+     (u_core.u_frontend.fetch_instr_w[46:44]==3'b100)||
+     (u_core.u_frontend.fetch_instr_w[46:44]==3'b101))) //Itype_L
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b0100011) && 
+    ((u_core.u_frontend.fetch_instr_w[46:44]==3'b000) || 
+     (u_core.u_frontend.fetch_instr_w[46:44]==3'b001) || 
+     (u_core.u_frontend.fetch_instr_w[46:44]==3'b010))) //Stype
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b0010011))//Itype
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b0110011) && 
+    (((u_core.u_frontend.fetch_instr_w[46:44]==3'b000) && 
+    ((u_core.u_frontend.fetch_instr_w[63:57]==7'd0) || 
+    (u_core.u_frontend.fetch_instr_w[63:57]==7'b0100000)))//Rtype
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b001) &&  (u_core.u_frontend.fetch_instr_w[63:57]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b010) &&  (u_core.u_frontend.fetch_instr_w[63:57]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b011) &&  (u_core.u_frontend.fetch_instr_w[63:57]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b100) &&  (u_core.u_frontend.fetch_instr_w[63:57]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b101) && ((u_core.u_frontend.fetch_instr_w[63:57]==7'd0) || (u_core.u_frontend.fetch_instr_w[63:57]==7'b0100000)))
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b110) &&  (u_core.u_frontend.fetch_instr_w[63:57]==7'd0))
+ ||((u_core.u_frontend.fetch_instr_w[46:44]==3'b111) &&  (u_core.u_frontend.fetch_instr_w[63:57]==7'd0)) ))                                        
+ ||((u_core.u_frontend.fetch_instr_w[38:32]==7'b1110011) && 
+    (u_core.u_frontend.fetch_instr_w[46:44]!=3'b000) && 
+    (u_core.u_frontend.fetch_instr_w[46:44]!=3'b100) 
+ && ((u_core.u_frontend.fetch_instr_w[63:52] == 12'h300) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'h304) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'h305) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'h341) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'h344) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'hB00) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'hB02) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'hB80) || 
+     (u_core.u_frontend.fetch_instr_w[63:52] == 12'hB82))));//CSR
+
+ // ---------------------------parameters---------------------------------//
+logic [31:0] rvfi_ins1_pipe0, rvfi_ins2_pipe0, rvfi_ins3_pipe0, rvfi_ins4_pipe0;
+logic [31:0] rvfi_ins1_pipe1, rvfi_ins2_pipe1, rvfi_ins3_pipe1, rvfi_ins4_pipe1;
+logic [31:0] rvfi_pc1_pipe0, rvfi_pc2_pipe0, rvfi_pc3_pipe0, rvfi_pc4_pipe0;
+logic [31:0] rvfi_pc1_pipe1, rvfi_pc2_pipe1, rvfi_pc3_pipe1, rvfi_pc4_pipe1;
+logic ins_valid_pipe0, ins_valid_pipe1; 
+logic ins_valid_pipe_slot0, ins_valid_pipe_slot1;
+
+// ---------------------------fetch ins(1)----------------------------------//
+assign ins_valid_pipe0 = u_core.u_frontend.u_decode.fetch_out0_valid_o;
+assign ins_valid_pipe1 = u_core.u_frontend.u_decode.fetch_out1_valid_o;
+assign ins_valid_pipe_slot0 = u_core.u_issue.slot0_valid_r;
+assign ins_valid_pipe_slot1 = u_core.u_issue.slot1_valid_r;
+assign rvfi_ins1_pipe0 = (ins_valid_pipe0) ? u_core.u_frontend.u_decode.fetch_out0_instr_o : 32'd0;
+assign rvfi_ins1_pipe1 = (ins_valid_pipe1) ? u_core.u_frontend.u_decode.fetch_out1_instr_o : 32'd0;
+assign rvfi_pc1_pipe0 = (ins_valid_pipe0) ? u_core.u_frontend.u_decode.fetch_out0_pc_o : 32'd0;
+assign rvfi_pc1_pipe1 = (ins_valid_pipe1) ? u_core.u_frontend.u_decode.fetch_out1_pc_o : 32'd0;
+
+// ---------------------------E1 / Address ins(2)---------------------------//
+logic pipe0_stall, pipe1_stall; 
+logic pipe0_no_flush, pipe1_no_flush;
+
+assign pipe0_stall = u_core.u_issue.u_pipe0_ctrl.issue_stall_i;
+assign pipe1_stall = u_core.u_issue.u_pipe1_ctrl.issue_stall_i;
+assign pipe0_no_flush = ((u_core.u_issue.u_pipe0_ctrl.issue_valid_i && u_core.u_issue.u_pipe0_ctrl.issue_accept_i) && ~(u_core.u_issue.u_pipe0_ctrl.squash_e1_e2_o || u_core.u_issue.u_pipe0_ctrl.squash_e1_e2_i));
+assign pipe1_no_flush = ((u_core.u_issue.u_pipe1_ctrl.issue_valid_i && u_core.u_issue.u_pipe1_ctrl.issue_accept_i) && ~(u_core.u_issue.u_pipe1_ctrl.squash_e1_e2_o || u_core.u_issue.u_pipe1_ctrl.squash_e1_e2_i));
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rvfi_ins2_pipe0 <= 32'd0;
+    rvfi_pc2_pipe0 <= 32'd0;
+end
+else if (pipe0_stall)
+begin
+    rvfi_ins2_pipe0 <= rvfi_ins2_pipe0;
+    rvfi_pc2_pipe0 <= rvfi_pc2_pipe0;
+end
+else if (pipe0_no_flush)
+begin
+    rvfi_ins2_pipe0 <= (ins_valid_pipe_slot0) ? rvfi_ins1_pipe0 : (ins_valid_pipe_slot1) ? rvfi_ins1_pipe1 : 32'd0;
+    rvfi_pc2_pipe0 <= (ins_valid_pipe_slot0) ? rvfi_pc1_pipe0 : (ins_valid_pipe_slot1) ? rvfi_pc1_pipe1 : 32'd0;
+end
+else
+begin
+    rvfi_ins2_pipe0 <= 32'd0;
+    rvfi_pc2_pipe0 <= 32'd0;
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rvfi_ins2_pipe1 <= 32'd0;
+    rvfi_pc2_pipe1 <= 32'd0;
+end
+else if (pipe1_stall)
+begin
+    rvfi_ins2_pipe1 <= rvfi_ins2_pipe1;
+    rvfi_pc2_pipe1 <= rvfi_pc2_pipe1;
+end
+else if (pipe1_no_flush)
+begin
+    rvfi_ins2_pipe1 <= (ins_valid_pipe_slot0) ? rvfi_ins1_pipe1 : 32'd0;
+    rvfi_pc2_pipe1 <= (ins_valid_pipe_slot0) ? rvfi_pc1_pipe1 : 32'd0;
+end
+else
+begin
+    rvfi_ins2_pipe1 <= 32'd0;
+    rvfi_pc2_pipe1 <= 32'd0;
+end
+// ---------------------------E2 / Mem result ins(3)------------------------//
+logic pipe0_stall_E2, pipe1_stall_E2; 
+logic pipe0_flush_E2, pipe1_flush_E2;
+
+assign pipe0_stall_E2 = u_core.u_issue.u_pipe0_ctrl.issue_stall_i;
+assign pipe1_stall_E2 = u_core.u_issue.u_pipe1_ctrl.issue_stall_i;
+assign pipe0_flush_E2 = u_core.u_issue.u_pipe0_ctrl.squash_e1_e2_o || u_core.u_issue.u_pipe0_ctrl.squash_e1_e2_i;
+assign pipe1_flush_E2 = u_core.u_issue.u_pipe1_ctrl.squash_e1_e2_o || u_core.u_issue.u_pipe1_ctrl.squash_e1_e2_i;
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rvfi_ins3_pipe0 <= 32'd0;
+    rvfi_pc3_pipe0 <= 32'd0;
+end
+else if (pipe0_stall_E2)
+begin
+    rvfi_ins3_pipe0 <= rvfi_ins3_pipe0;
+    rvfi_pc3_pipe0 <= rvfi_pc3_pipe0;
+end
+else if (pipe0_flush_E2)
+begin
+    rvfi_ins3_pipe0 <= 32'd0;
+    rvfi_pc3_pipe0 <= 32'd0;
+end
+else
+begin
+    rvfi_ins3_pipe0 <= rvfi_ins2_pipe0;
+    rvfi_pc3_pipe0 <= rvfi_pc2_pipe0;
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rvfi_ins3_pipe1 <= 32'd0;
+    rvfi_pc3_pipe1 <= 32'd0;
+end
+else if (pipe1_stall_E2)
+begin
+    rvfi_ins3_pipe1 <= rvfi_ins3_pipe1;
+    rvfi_pc3_pipe1 <= rvfi_pc3_pipe1;
+end
+else if (pipe1_flush_E2)
+begin
+    rvfi_ins3_pipe1 <= 32'd0;
+    rvfi_pc3_pipe1 <= 32'd0;
+end
+else
+begin
+    rvfi_ins3_pipe1 <= rvfi_ins2_pipe1;
+    rvfi_pc3_pipe1 <= rvfi_pc2_pipe1;
+end
+// ---------------------------Writeback / Commit ins(4)---------------------//
+logic pipe0_stall_WB, pipe1_stall_WB; 
+logic pipe0_flush_WB, pipe1_flush_WB;
+
+assign pipe0_stall_WB = u_core.u_issue.u_pipe0_ctrl.issue_stall_i;
+assign pipe1_stall_WB = u_core.u_issue.u_pipe1_ctrl.issue_stall_i;
+assign pipe0_flush_WB = u_core.u_issue.u_pipe0_ctrl.squash_wb_i;
+assign pipe1_flush_WB = u_core.u_issue.u_pipe1_ctrl.squash_wb_i;
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rvfi_ins4_pipe0 <= 32'd0;
+    rvfi_pc4_pipe0 <= 32'd0;
+end
+else if (pipe0_stall_WB)
+begin
+    rvfi_ins4_pipe0 <= rvfi_ins4_pipe0;
+    rvfi_pc4_pipe0 <= rvfi_pc4_pipe0;
+end
+else if (pipe0_flush_WB)
+begin
+    rvfi_ins4_pipe0 <= 32'd0;
+    rvfi_pc4_pipe0 <= 32'd0;
+end
+else
+begin
+    rvfi_ins4_pipe0 <= rvfi_ins3_pipe0;
+    rvfi_pc4_pipe0 <= rvfi_pc3_pipe0;
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rvfi_ins4_pipe1 <= 32'd0;
+    rvfi_pc4_pipe1 <= 32'd0;
+end
+else if (pipe1_stall_WB)
+begin
+    rvfi_ins4_pipe1 <= rvfi_ins4_pipe1;
+    rvfi_pc4_pipe1 <= rvfi_pc4_pipe1;
+end
+else if (pipe1_flush_WB)
+begin
+    rvfi_ins4_pipe1 <= 32'd0;
+    rvfi_pc4_pipe1 <= 32'd0;
+end
+else
+begin
+    rvfi_ins4_pipe1 <= rvfi_ins3_pipe1;
+    rvfi_pc4_pipe1 <= rvfi_pc3_pipe1;
+end
+
+// ---------------------------After Writeback(5)----------------------//
+logic [4:0] rd_pipe0_ins5, rd_pipe1_ins5;
+
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rd_pipe0_ins5 <= 5'd0;
+end
+else if(valid_rd_pipe0)
+begin
+    rd_pipe0_ins5 <= rvfi_ins4_pipe0[11:7];
+end
+else
+begin 
+    rd_pipe0_ins5 <= 5'd0;
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    rd_pipe1_ins5 <= 5'd0;
+end
+else if(valid_rd_pipe1)
+begin
+    rd_pipe1_ins5 <= rvfi_ins4_pipe1[11:7];
+end
+else
+begin
+    rd_pipe1_ins5 <= 5'd0;
+end
+
+
+// ----------------------------register---------------------------//
+logic valid_wb_pipe0, valid_wb_pipe1;
+logic valid_rd_pipe0, valid_rd_pipe1;
+assign valid_wb_pipe0 = u_core.u_issue.pipe0_valid_wb_w;
+assign valid_wb_pipe1 = u_core.u_issue.pipe1_valid_wb_w;
+assign valid_rd_pipe0 = (u_core.u_issue.u_pipe0_ctrl.ctrl_wb_q[7] & ~(rvfi_ins4_pipe0[11:7]==5'd0) & valid_wb_pipe0 & ~(u_core.u_issue.u_pipe0_ctrl.stall_o));
+assign valid_rd_pipe1 = (u_core.u_issue.u_pipe1_ctrl.ctrl_wb_q[7] & ~(rvfi_ins4_pipe1[11:7]==5'd0) & valid_wb_pipe1 & ~(u_core.u_issue.u_pipe1_ctrl.stall_o));
+
+logic [31:0] RF [31:0];
+assign RF[0] = 32'd0; 
+assign RF[1] = u_core.u_issue.u_regfile.REGFILE.reg_r1_q;
+assign RF[2] = u_core.u_issue.u_regfile.REGFILE.reg_r2_q;
+assign RF[3] = u_core.u_issue.u_regfile.REGFILE.reg_r3_q;
+assign RF[4] = u_core.u_issue.u_regfile.REGFILE.reg_r4_q;
+assign RF[5] = u_core.u_issue.u_regfile.REGFILE.reg_r5_q;
+assign RF[6] = u_core.u_issue.u_regfile.REGFILE.reg_r6_q;
+assign RF[7] = u_core.u_issue.u_regfile.REGFILE.reg_r7_q;
+assign RF[8] = u_core.u_issue.u_regfile.REGFILE.reg_r8_q;
+assign RF[9] = u_core.u_issue.u_regfile.REGFILE.reg_r9_q;
+assign RF[10] = u_core.u_issue.u_regfile.REGFILE.reg_r10_q;
+assign RF[11] = u_core.u_issue.u_regfile.REGFILE.reg_r11_q;
+assign RF[12] = u_core.u_issue.u_regfile.REGFILE.reg_r12_q;
+assign RF[13] = u_core.u_issue.u_regfile.REGFILE.reg_r13_q;
+assign RF[14] = u_core.u_issue.u_regfile.REGFILE.reg_r14_q;
+assign RF[15] = u_core.u_issue.u_regfile.REGFILE.reg_r15_q;
+assign RF[16] = u_core.u_issue.u_regfile.REGFILE.reg_r16_q;
+assign RF[17] = u_core.u_issue.u_regfile.REGFILE.reg_r17_q;
+assign RF[18] = u_core.u_issue.u_regfile.REGFILE.reg_r18_q;
+assign RF[19] = u_core.u_issue.u_regfile.REGFILE.reg_r19_q;
+assign RF[20] = u_core.u_issue.u_regfile.REGFILE.reg_r20_q;
+assign RF[21] = u_core.u_issue.u_regfile.REGFILE.reg_r21_q;
+assign RF[22] = u_core.u_issue.u_regfile.REGFILE.reg_r22_q;
+assign RF[23] = u_core.u_issue.u_regfile.REGFILE.reg_r23_q;
+assign RF[24] = u_core.u_issue.u_regfile.REGFILE.reg_r24_q;
+assign RF[25] = u_core.u_issue.u_regfile.REGFILE.reg_r25_q;
+assign RF[26] = u_core.u_issue.u_regfile.REGFILE.reg_r26_q;
+assign RF[27] = u_core.u_issue.u_regfile.REGFILE.reg_r27_q;
+assign RF[28] = u_core.u_issue.u_regfile.REGFILE.reg_r28_q;
+assign RF[29] = u_core.u_issue.u_regfile.REGFILE.reg_r29_q;
+assign RF[30] = u_core.u_issue.u_regfile.REGFILE.reg_r30_q;
+assign RF[31] = u_core.u_issue.u_regfile.REGFILE.reg_r31_q;
+
+//================================================================
+//                          ANDI/AUIPC/FIFO
+//================================================================
+
+// -----------------------------ins_tri---------------------------//
+logic anditri_pipe0;
+assign anditri_pipe0 = (rvfi_ins4_pipe0[6:0] == 7'b0010011 &&
+                        rvfi_ins4_pipe0[14:12] == 3'b111 &&
+                        rvfi_ins4_pipe0[11:7] != 5'd0);
+
+logic anditri_pipe1;
+assign anditri_pipe1 = (rvfi_ins4_pipe1[6:0] == 7'b0010011 &&
+                        rvfi_ins4_pipe1[14:12] == 3'b111 &&
+                        rvfi_ins4_pipe1[11:7] != 5'd0);
+
+logic auipctri_pipe0;
+assign auipctri_pipe0 = (rvfi_ins4_pipe0[6:0] == 7'b0010111 &&
+                        rvfi_ins4_pipe0[11:7] != 5'd0);
+
+logic auipctri_pipe1;
+assign auipctri_pipe1 = (rvfi_ins4_pipe1[6:0] == 7'b0010111 &&
+                        rvfi_ins4_pipe1[11:7] != 5'd0);
+
+// ---------------------------result_check------------------------//
+logic [31:0] gold_andi_pipe0, gold_andi_pipe1;
+logic [31:0] gold_andi_pipe0_WB, gold_andi_pipe1_WB;
+logic [31:0] andi_pipe0_imm, andi_pipe1_imm;
+
+logic [31:0] gold_auipc_pipe0, gold_auipc_pipe1;
+logic [31:0] gold_auipc_pipe0_WB, gold_auipc_pipe1_WB;
+logic [31:0] auipc_pipe0_imm, auipc_pipe1_imm;
+
+logic [31:0] wb_data_pipe0, wb_data_pipe1;
+logic [4:0] rd_after_wb0, rd_after_wb1;   
+
+assign andi_pipe0_imm = {{20{rvfi_ins4_pipe0[31]}}, rvfi_ins4_pipe0[31:20]};
+assign andi_pipe1_imm = {{20{rvfi_ins4_pipe1[31]}}, rvfi_ins4_pipe1[31:20]};
+assign auipc_pipe0_imm = {rvfi_ins4_pipe0[31:12], 12'd0};
+assign auipc_pipe1_imm = {rvfi_ins4_pipe1[31:12], 12'd0};
+
+assign gold_andi_pipe0 = (anditri_pipe0 & valid_wb_pipe0) ?  RF[rvfi_ins4_pipe0[19:15]] & andi_pipe0_imm : 32'd0;
+assign gold_andi_pipe1 = (anditri_pipe1 & valid_wb_pipe1) ?  RF[rvfi_ins4_pipe1[19:15]] & andi_pipe1_imm : 32'd0;
+assign gold_auipc_pipe0 = (auipctri_pipe0 & valid_wb_pipe0) ? rvfi_pc4_pipe0 + auipc_pipe0_imm : 32'd0;
+assign gold_auipc_pipe1 = (auipctri_pipe1 & valid_wb_pipe1) ? rvfi_pc4_pipe1 + auipc_pipe1_imm : 32'd0;
+
+// -------------------------------andi_data (after wb)---------------------------//
+andi_pipe0_data_reg : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (anditri_pipe0 & valid_rd_pipe0) |=> (gold_andi_pipe0_WB[0] == RF[rd_after_wb0][0])
+);
+
+andi_pipe1_data_reg : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (anditri_pipe1 & valid_rd_pipe1) |=> (gold_andi_pipe1_WB[0] == RF[rd_after_wb1][0])
+);
+
+// -------------------------------andi_rd (after wb)---------------------------//
+andi_pipe0_data_rd : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (anditri_pipe0 & valid_rd_pipe0) |=> (rd_pipe0_ins5 == rd_after_wb0)
+);
+
+andi_pipe1_data_rd : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (anditri_pipe1 & valid_rd_pipe1) |=> (rd_pipe1_ins5 == rd_after_wb1)
+);
+
+// -------------------------------auipc_data (after wb)-------------------------//
+auipc_pipe0_data_reg : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (auipctri_pipe0 & valid_rd_pipe0) |=> (gold_auipc_pipe0_WB[0] == RF[rd_after_wb0][0])
+);
+
+auipc_pipe1_data_reg : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (auipctri_pipe1 & valid_rd_pipe1) |=> (gold_auipc_pipe1_WB[0] == RF[rd_after_wb1][0])
+);
+
+// -------------------------------auipc_rd (after wb)-------------------------//
+auipc_pipe0_data_rd : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (auipctri_pipe0 & valid_rd_pipe0) |=> (rd_pipe0_ins5 == rd_after_wb0)
+);
+
+auipc_pipe1_data_rd : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (auipctri_pipe1 & valid_rd_pipe1) |=> (rd_pipe1_ins5 == rd_after_wb1)
+);
+
+// -------------------------------gold_data (after wb)-------------------------//
+always @(posedge clk) 
+begin
+    gold_andi_pipe0_WB <= RF[rvfi_ins4_pipe0[19:15]] & andi_pipe0_imm;
+end
+
+always @(posedge clk) 
+begin
+    gold_andi_pipe1_WB <= RF[rvfi_ins4_pipe1[19:15]] & andi_pipe1_imm; 
+end
+
+always @(posedge clk) 
+begin
+    gold_auipc_pipe0_WB <= rvfi_pc4_pipe0 + auipc_pipe0_imm;
+end
+
+always @(posedge clk) 
+begin
+    gold_auipc_pipe1_WB <= rvfi_pc4_pipe1 + auipc_pipe1_imm; 
+end
+
+
+always @(posedge clk) 
+begin
+    wb_data_pipe0 <= u_core.u_exec0.writeback_value_o;
+end
+
+always @(posedge clk) 
+begin
+    wb_data_pipe1 <= u_core.u_exec1.writeback_value_o;
+end
+
+always @(posedge clk) 
+begin
+    rd_after_wb0 <= u_core.u_issue.u_regfile.rd0_i;
+end
+
+always @(posedge clk) 
+begin
+    rd_after_wb1 <= u_core.u_issue.u_regfile.rd1_i;
+end
+
+// ------------------------------------------------fif0_parameter------------------------------------------------ //
+logic write_valid, read_valid0, read_valid1, pop_finish, out0_valid, out1_valid, w_idx, rd_idx;
+logic [63:0] ins_64bit;
+logic [31:0] ins0, ins1;
+logic [1:0] count;
+
+//push
+assign write_valid = u_core.u_frontend.u_decode.fetch_in_valid_i & u_core.u_frontend.u_decode.fetch_in_accept_o;
+//pop
+assign read_valid0 = u_core.u_frontend.u_decode.fetch_out0_accept_i & u_core.u_frontend.u_decode.fetch_out0_valid_o;
+assign read_valid1 = u_core.u_frontend.u_decode.fetch_out1_accept_i & u_core.u_frontend.u_decode.fetch_out1_valid_o;
+assign pop_finish = ((read_valid0 && ~(u_core.u_frontend.u_decode.fetch_out1_valid_o)) || (read_valid1 && ~(u_core.u_frontend.u_decode.fetch_out0_valid_o)) || (read_valid0 && read_valid1));
+
+assign out0_valid = u_core.u_frontend.u_decode.genblk1.u_fifo.valid0_o;
+assign out1_valid = u_core.u_frontend.u_decode.genblk1.u_fifo.valid1_o;
+
+assign ins_64bit = (u_core.u_frontend.u_decode.fetch_in_fault_page_i || u_core.u_frontend.u_decode.fetch_in_fault_fetch_i) ? 64'd0 : u_core.u_frontend.u_decode.fetch_in_instr_i;
+
+fifo_data0 : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (out0_valid) |-> (ins2 == u_core.u_frontend.u_decode.fetch_out0_instr_o)
+);
+
+fifo_data1 : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (out1_valid) |-> (ins3 == u_core.u_frontend.u_decode.fetch_out1_instr_o)
+);
+
+fifo_w_ptr : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (write_valid) |=> (u_core.u_frontend.u_decode.genblk1.u_fifo.wr_ptr_q == w_idx)
+);
+
+fifo_rd_ptr : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (pop_finish) |=> (u_core.u_frontend.u_decode.genblk1.u_fifo.rd_ptr_q == rd_idx)
+);
+
+overflow : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (count==2'd2) |-> ~(write_valid)
+);
+
+underflow : assert property
+(
+  @(posedge clk)
+  disable iff (rst)
+  (count==2'd0) |-> ~(pop_finish)
+);
+
+always @(posedge clk) 
+begin
+    w_idx <= u_core.u_frontend.u_decode.genblk1.u_fifo.wr_ptr_q + 1;
+end
+
+always @(posedge clk) 
+begin
+    rd_idx <= u_core.u_frontend.u_decode.genblk1.u_fifo.rd_ptr_q + 1;
+end
+
+// ------------------------------------------------fif0------------------------------------------------ //
+integer i;
+logic wr_ptr, r_ptr;
+logic [63:0] ins_64bit;
+logic [63:0] ram [1:0];
+logic [31:0] ins2, ins3;
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    wr_ptr <= 1'd0;
+    r_ptr <= 1'd0;
+    count <= 2'd0;
+    for (i = 0; i < 2; i = i + 1) 
+    begin
+        ram[i] <= 64'd0;
+    end
+end
+else if(u_core.u_frontend.u_decode.genblk1.u_fifo.flush_i)
+begin
+  wr_ptr <= 1'd0;
+  r_ptr <= 1'd0;
+  count <= 2'd0;
+  for (i = 0; i < 2; i = i + 1) 
+  begin
+      ram[i] <= 64'd0;
+  end
+end
+else
+begin
+    if (write_valid)
+    begin
+        ram[wr_ptr] <= ins_64bit;
+        wr_ptr <= (wr_ptr==1'd1) ? 1'd0 : wr_ptr + 1'd1;
+    end
+    else
+    begin 
+      wr_ptr <= wr_ptr;
+    end
+
+    if(pop_finish)
+    begin 
+        r_ptr <= (r_ptr==1'd1) ? 1'd0 : r_ptr + 1'd1;
+    end
+    else
+    begin 
+        r_ptr <= r_ptr;
+    end
+
+    if(write_valid & ~pop_finish)
+        count <= count + 2'd1;
+    else if(~write_valid & pop_finish)
+        count <= count -2'd1;
+    else
+        count <= count;
+end
+
+always @(*)
+begin 
+  if(rst)
+  begin 
+      ins2 = 32'd0;
+      ins3 = 32'd0;
+  end
+  else if(out0_valid & out1_valid)
+  begin 
+      ins2 = ram[r_ptr][31:0];
+      ins3 = ram[r_ptr][63:32];
+  end
+  else if(out0_valid)
+  begin 
+      ins2 = ram[r_ptr][31:0];
+      ins3 = 32'd0;
+  end
+  else if(out1_valid)
+  begin 
+      ins2 = 32'd0;
+      ins3 = ram[r_ptr][63:32];
+  end
+  else
+  begin
+    ins2 = 32'd0;
+    ins3 = 32'd0;
+  end
+end
+
+//================================================================
+//                              BGE
+//================================================================
+
+// -----------------------------ins_tri---------------------------//
+logic bgetri_pipe0;
+assign bgetri_pipe0  = (rvfi_ins4_pipe0[6:0] == 7'b1100011 &&
+                        rvfi_ins4_pipe0[14:12] == 3'b101 ); 
+                        
+logic bgetri_pipe1;
+assign bgetri_pipe1  = (rvfi_ins4_pipe1[6:0] == 7'b1100011 &&
+                        rvfi_ins4_pipe1[14:12] == 3'b101 );
+
+// ---------------------------result_check------------------------//
+
+logic [31:0] gold_pc_four_pipe0,gold_pc_four_pipe1;
+logic [31:0] gold_pc_imm_pipe0,gold_pc_imm_pipe1;
+logic        branch_taken_pipe0,branch_taken_pipe1; 
+logic [31:0] gold_rs1_pipe0,gold_rs2_pipe0;
+logic [31:0] gold_rs1_pipe1,gold_rs2_pipe1;
+logic [31:0] gold_bge_pc_pipe0,gold_bge_pc_pipe1;
+
+
+
+assign    gold_pc_four_pipe0 =  (bgetri_pipe0 & valid_wb_pipe0) ? rvfi_pc4_pipe0 + 32'd4 : 32'd0;
+assign    gold_pc_four_pipe1 =  (bgetri_pipe1 & valid_wb_pipe1) ? rvfi_pc4_pipe1 + 32'd4 : 32'd0;
+
+
+assign    gold_pc_imm_pipe0 =  (bgetri_pipe0 & valid_wb_pipe0) ? rvfi_pc4_pipe0 + {{19{rvfi_ins4_pipe0[31]}}, rvfi_ins4_pipe0[31], rvfi_ins4_pipe0[7], rvfi_ins4_pipe0[30:25], rvfi_ins4_pipe0[11:8], 1'b0} : 32'd0;
+assign    gold_pc_imm_pipe1 =  (bgetri_pipe1 & valid_wb_pipe1) ? rvfi_pc4_pipe1 + {{19{rvfi_ins4_pipe1[31]}}, rvfi_ins4_pipe1[31], rvfi_ins4_pipe1[7], rvfi_ins4_pipe1[30:25], rvfi_ins4_pipe1[11:8], 1'b0} : 32'd0;
+
+
+
+assign    gold_rs1_pipe0 = (bgetri_pipe0 & valid_wb_pipe0) ? RF[rvfi_ins4_pipe0[19:15]] :32'd0;
+assign    gold_rs2_pipe0 = (bgetri_pipe0 & valid_wb_pipe0) ? RF[rvfi_ins4_pipe0[24:20]] :32'd0;
+
+
+assign    gold_rs1_pipe1 = (bgetri_pipe1 & valid_wb_pipe1) ? RF[rvfi_ins4_pipe1[19:15]] :32'd0;
+assign    gold_rs2_pipe1 = (bgetri_pipe1 & valid_wb_pipe1) ? RF[rvfi_ins4_pipe1[24:20]] :32'd0;
+
+
+function [0:0] greater_than_signed;
+    input  [31:0] x;
+    input  [31:0] y;
+    reg [31:0] v;
+begin
+    v = (y - x);
+    if (x[31] != y[31])
+        greater_than_signed = y[31];
+    else
+        greater_than_signed = v[31];
+end
+endfunction
+
+
+
+assign branch_taken_pipe0 = (bgetri_pipe0) ? greater_than_signed(gold_rs1_pipe0,gold_rs2_pipe0) | (gold_rs1_pipe0 == gold_rs2_pipe0) : 1'd0 ;
+assign branch_taken_pipe1 = (bgetri_pipe1) ? greater_than_signed(gold_rs1_pipe1,gold_rs2_pipe1) | (gold_rs1_pipe1 == gold_rs2_pipe1) : 1'd0 ;
+
+assign gold_bge_pc_pipe0  = (branch_taken_pipe0) ?  gold_pc_imm_pipe0 :  gold_pc_four_pipe0 ;
+assign gold_bge_pc_pipe1  = (branch_taken_pipe1) ?  gold_pc_imm_pipe1 :  gold_pc_four_pipe1 ;
+
+logic [31:0] branch_pc_3_pipe0,branch_pc_4_pipe0;
+logic [31:0] branch_pc_3_pipe1,branch_pc_4_pipe1;
+always @(posedge clk) begin
+    if (rst)
+    branch_pc_3_pipe0 <= 32'd0;
+    else if (pipe0_stall_E2)
+    branch_pc_3_pipe0 <= branch_pc_3_pipe0;
+    else
+    branch_pc_3_pipe0 <= u_core.u_issue.branch_exec0_pc_i;    
+end
+
+always @(posedge clk) begin
+    if (rst)
+    branch_pc_4_pipe0 <= 32'd0;
+    else if (pipe0_stall_WB)
+    branch_pc_4_pipe0 <= branch_pc_4_pipe0;
+    else
+    branch_pc_4_pipe0 <= branch_pc_3_pipe0;    
+end
+
+always @(posedge clk) begin
+    if (rst)
+    branch_pc_3_pipe1 <= 32'd0;
+    else if (pipe1_stall_E2)
+    branch_pc_3_pipe1 <= branch_pc_3_pipe1;
+    else
+    branch_pc_3_pipe1 <= u_core.u_issue.branch_exec1_pc_i;    
+end
+
+always @(posedge clk) begin
+    if (rst)
+    branch_pc_4_pipe1 <= 32'd0;
+    else if (pipe1_stall_WB)
+    branch_pc_4_pipe1 <= branch_pc_4_pipe1;
+    else
+    branch_pc_4_pipe1 <= branch_pc_3_pipe1;    
+end
+
+
+
+bge_pipe0 : assert property (@(posedge clk)disable iff (rst) (bgetri_pipe0 & valid_wb_pipe0 ) |-> (gold_bge_pc_pipe0[3] == branch_pc_4_pipe0[3]));
+bge_pipe1 : assert property (@(posedge clk)disable iff (rst) (bgetri_pipe1 & valid_wb_pipe1 ) |-> (gold_bge_pc_pipe1[2] == branch_pc_4_pipe1[2]));   
+
+rd1_and_rd2 : assume property(
+    (u_core.u_frontend.fetch_instr_w[6:0]==7'b1100011) && (u_core.u_frontend.fetch_instr_w[14:12]==3'b101) &&  (u_core.u_frontend.fetch_instr_w[19:15]==5'd25) ||
+    (u_core.u_frontend.fetch_instr_w[6:0]==7'b1100011) && (u_core.u_frontend.fetch_instr_w[14:12]==3'b101) &&  (u_core.u_frontend.fetch_instr_w[24:20]==5'd26) ||
+    (u_core.u_frontend.fetch_instr_w[51:47]==5'd1) ||
+    (u_core.u_frontend.fetch_instr_w[56:52]==5'd2)
+
+);
+
+//================================================================
+//                              LBU
+//================================================================
+
+// -----------------------------ins_tri---------------------------//
+
+logic lbutri_pipe0;
+assign lbutri_pipe0 = (rvfi_ins4_pipe0[6:0] == 7'b0000011 &&
+                        rvfi_ins4_pipe0[14:12] == 3'b100 &&
+                        rvfi_ins4_pipe0[11:7] != 5'd0 &&
+                        u_core.u_issue.u_pipe0_ctrl.valid_wb_o 
+                        );
+
+logic lbutri_pipe1;
+assign lbutri_pipe1 = (rvfi_ins4_pipe1[6:0] == 7'b0000011 &&
+                        rvfi_ins4_pipe1[14:12] == 3'b100 &&
+                        rvfi_ins4_pipe1[11:7] != 5'd0 &&
+                        u_core.u_issue.u_pipe1_ctrl.valid_wb_o 
+                        );
+
+
+//---------------------------mem addr check------------------------//
+logic   [31:0]reg_Addr_E1_pipe0, reg_Addr_E1_pipe1, reg_Addr_E2_pipe0, reg_Addr_WB_pipe0, reg_Addr_E2_pipe1, reg_Addr_WB_pipe1;
+logic   WB_Stall_pipe0, WB_Stall_pipe1;
+logic   mem_fault, mem_fault_E1_pipe0, mem_fault_E2_pipe0, mem_fault_WB_pipe0, mem_fault_nextWB_pipe0,
+        mem_fault_E1_pipe1, mem_fault_E2_pipe1, mem_fault_WB_pipe1;
+assign WB_Stall_pipe0 = u_core.u_issue.u_pipe0_ctrl.issue_stall_i;
+assign WB_Stall_pipe1 = u_core.u_issue.u_pipe1_ctrl.issue_stall_i;
+assign mem_fault = u_core.u_lsu.complete_err_e2_w || u_core.u_lsu.mem_unaligned_e2_q;
+
+//pipe0
+always @ (posedge clk or posedge rst)
+if (rst)    begin
+    reg_Addr_E1_pipe0 <= 32'd0;
+end
+else if (pipe0_stall)   begin
+    reg_Addr_E1_pipe0 <= reg_Addr_E1_pipe0;
+end
+else if (pipe0_no_flush)    begin
+    reg_Addr_E1_pipe0 <= u_core.u_lsu.mem_addr_r;
+end
+else    begin
+    reg_Addr_E1_pipe0 <= 32'd0;
+end
+
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    reg_Addr_E2_pipe0 <= 32'd0;
+end
+else if(pipe0_stall_E2)
+begin
+    reg_Addr_E2_pipe0 <= reg_Addr_E2_pipe0;
+end
+else if (pipe0_flush_E2)
+begin
+    reg_Addr_E2_pipe0 <= 32'd0;
+end
+else
+begin
+    reg_Addr_E2_pipe0 <= reg_Addr_E1_pipe0; 
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    reg_Addr_WB_pipe0 <= 32'd0;
+end
+else if (pipe0_stall_WB)
+begin
+    reg_Addr_WB_pipe0 <= reg_Addr_WB_pipe0;
+end
+else if(pipe0_flush_WB)
+begin
+    reg_Addr_WB_pipe0 <= 32'd0;
+end
+else
+begin
+    reg_Addr_WB_pipe0 <= reg_Addr_E2_pipe0;
+end
+
+
+//pipe1
+always @ (posedge clk or posedge rst)
+if (rst)    begin
+    reg_Addr_E1_pipe1 <= 32'd0;
+end
+else if (pipe1_stall)   begin
+    reg_Addr_E1_pipe1 <= reg_Addr_E1_pipe1;
+end
+else if (pipe1_no_flush)    begin
+    reg_Addr_E1_pipe1 <= u_core.u_lsu.mem_addr_r;
+end
+else    begin
+    reg_Addr_E1_pipe1 <= 32'd0;
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    reg_Addr_E2_pipe1 <= 32'd0;
+end
+else if(pipe1_stall_E2)
+begin
+    reg_Addr_E2_pipe1 <= reg_Addr_E2_pipe1;
+end
+else if (pipe1_flush_E2)
+begin
+    reg_Addr_E2_pipe1 <= 32'd0;
+end
+else
+begin
+    reg_Addr_E2_pipe1 <= reg_Addr_E1_pipe1;
+end
+
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    reg_Addr_WB_pipe1 <= 32'd0;
+end
+else if (pipe1_stall_WB)
+begin
+    reg_Addr_WB_pipe1 <= reg_Addr_WB_pipe1;
+end
+else if(pipe1_flush_WB)
+begin
+    reg_Addr_WB_pipe1 <= 32'd0;
+end
+else
+begin
+    reg_Addr_WB_pipe1 <= reg_Addr_E2_pipe1;
+end
+
+logic [4:0] rvfi_rs1_pipe0, rvfi_rs1_pipe1;
+logic [31:0] gold_addr_pipe0, rvfi_imm_pipe0,
+             gold_addr_pipe1, rvfi_imm_pipe1;
+assign  rvfi_rs1_pipe0 = rvfi_ins4_pipe0[19:15];
+assign  rvfi_imm_pipe0 = (rvfi_ins4_pipe0[31])? {20'hfffff,rvfi_ins4_pipe0[31:20]} : {20'h00000,rvfi_ins4_pipe0[31:20]};
+assign  gold_addr_pipe0 = RF[rvfi_rs1_pipe0] + rvfi_imm_pipe0;
+
+assign  rvfi_rs1_pipe1 = rvfi_ins4_pipe1[19:15];
+assign  rvfi_imm_pipe1 = (rvfi_ins4_pipe1[31])? {20'hfffff,rvfi_ins4_pipe1[31:20]} : {20'h00000,rvfi_ins4_pipe1[31:20]};
+assign  gold_addr_pipe1 = RF[rvfi_rs1_pipe1] + rvfi_imm_pipe1;
+
+check_Addr_pipe0 : assert property
+(
+    @(posedge clk)
+    disable iff (rst)
+    lbutri_pipe0 |-> (reg_Addr_WB_pipe0[16:15] == gold_addr_pipe0[16:15])
+);
+
+check_Addr_pipe1 : assert property
+(
+    @(posedge clk)
+    disable iff (rst)
+    lbutri_pipe1 |-> (reg_Addr_WB_pipe1[16:15] == gold_addr_pipe1[16:15])
+);
+
+//---------------------------mem data loadbyte check------------------------//
+logic [31:0] WB_data_pipe0, WB_data_pipe1, LW_WB_pipe0, golden_LBU_WB_pipe0, LW_WB_pipe1, golden_LBU_WB_pipe1;
+
+assign WB_data_pipe0 = u_core.u_issue.pipe0_result_wb_w;
+assign WB_data_pipe1 = u_core.u_issue.pipe1_result_wb_w;
+
+
+//pipe0
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    LW_WB_pipe0 <= 32'd0;
+end
+else if (pipe0_stall_WB)
+begin
+    LW_WB_pipe0 <= LW_WB_pipe0;
+end
+else if(pipe0_flush_WB)
+begin
+    LW_WB_pipe0 <= 32'd0;
+end
+else
+begin
+    LW_WB_pipe0 <= u_core.u_lsu.mem_data_rd_i;
+end
+
+
+always@(*)
+case (gold_addr_pipe0[1:0])
+    2'h3: golden_LBU_WB_pipe0 = {24'd0,LW_WB_pipe0[31:24]};
+    2'h2: golden_LBU_WB_pipe0 = {24'd0,LW_WB_pipe0[23:16]};
+    2'h1: golden_LBU_WB_pipe0 = {24'd0,LW_WB_pipe0[15:8]};
+    2'h0: golden_LBU_WB_pipe0 = {24'd0,LW_WB_pipe0[7:0]}; 
+endcase
+
+
+//pipe1
+always @ (posedge clk or posedge rst)
+if (rst)
+begin
+    LW_WB_pipe1 <= 32'd0;
+end
+else if (pipe1_stall_WB)
+begin
+    LW_WB_pipe1 <= LW_WB_pipe1;
+end
+else if(pipe1_flush_WB)
+begin
+    LW_WB_pipe1 <= 32'd0;
+end
+else
+begin
+    LW_WB_pipe1 <= u_core.u_lsu.mem_data_rd_i;
+end
+
+
+always@(*)
+case (gold_addr_pipe1[1:0])
+    2'h3: golden_LBU_WB_pipe1 = {24'd0,LW_WB_pipe1[31:24]};
+    2'h2: golden_LBU_WB_pipe1 = {24'd0,LW_WB_pipe1[23:16]};
+    2'h1: golden_LBU_WB_pipe1 = {24'd0,LW_WB_pipe1[15:8]};
+    2'h0: golden_LBU_WB_pipe1 = {24'd0,LW_WB_pipe1[7:0]}; 
+endcase
+
+no_access_fault: assume property( !((u_core.u_lsu.mem_ack_i && u_core.u_lsu.mem_error_i) || u_core.u_lsu.mem_unaligned_e2_q ));
+mem_always_accept: assume property(u_core.u_lsu.mem_accept_i == 1'b1);
+
+check_mem_LBU_data_pipe0: assert property
+(
+    @(posedge clk)
+    disable iff (rst)
+    lbutri_pipe0 |-> (golden_LBU_WB_pipe0[16:15] == WB_data_pipe0[16:15])
+);
+
+check_mem_LBU_data_pipe1: assert property
+(
+    @(posedge clk)
+    disable iff (rst)
+    lbutri_pipe1 |-> (golden_LBU_WB_pipe1[16:15] == WB_data_pipe1[16:15])
+);
+
+
+//---------------------------mem data writeback check------------------------//
+logic [31:0] WBData_pipe0, WBData_pipe1;
+always@(posedge clk  or posedge rst)
+if(rst) begin
+    WBData_pipe0 <= 32'd0;
+    WBData_pipe1 <= 32'd0;
+end
+else    begin
+    WBData_pipe0 <= u_core.u_issue.pipe0_result_wb_w;
+    WBData_pipe1 <= u_core.u_issue.pipe1_result_wb_w;
+end
+
+check_mem_wb_pipe0 : assert property
+(
+    @(posedge clk)
+    disable iff (rst)
+    lbutri_pipe0 |=> (WBData_pipe0 == RF[rd_pipe0_ins5])
+);
+
+check_mem_wb_pipe1 : assert property
+(
+    @(posedge clk)
+    disable iff (rst)
+    lbutri_pipe1 |=> (WBData_pipe1 == RF[rd_pipe1_ins5])
+);
+
+
+bind riscv_top isa isa_i(
+    .clk(clk_i),
+    .rst(rst_i)
+);
+
+endmodule : isa
